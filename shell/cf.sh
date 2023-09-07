@@ -2,6 +2,7 @@
 # better-cloudflare-ip
 
 function bettercloudflareip(){
+pushplus=f0c297f1077042ea9977bc6a7f17c1d0
 read -p "请设置期望的带宽大小(默认最小1,单位 Mbps):" bandwidth
 read -p "请设置RTT测试进程数(默认10,最大50):" tasknum
 if [ -z "$bandwidth" ]
@@ -72,6 +73,12 @@ echo "峰值速度 $max kB/s"
 echo "往返延迟 $avgms 毫秒"
 echo "数据中心 $colo"
 echo "总计用时 $[$endtime-$starttime] 秒"
+		iptables -t nat -D OUTPUT $(iptables -t nat -nL OUTPUT --line-number | grep $localport | awk '{print $1}')
+		iptables -t nat -A OUTPUT -p tcp --dport $localport -j DNAT --to-destination $anycast:$remoteport
+		#echo $(date +'%Y-%m-%d %H:%M:%S') IP指向 $anycast>>/usr/dns/cfnat.txt
+
+		curl -s -o /dev/null --data "token=$pushplus&title=$anycast更新成功！&content= 优选IP $anycast<br>公网IP $publicip<br/>实测带宽 $realbandwidth Mbps<br>峰值速度 $max kB/s<br>往返延迟 $avgms 毫秒<br>数据中心 $colo<br>总计用时 $((end_seconds-start_seconds)) 秒<br>&template=html" http://www.pushplus.plus/send #微信推送最新查找的IP-pushplus推送加
+
 }
 
 function rtthttps(){
